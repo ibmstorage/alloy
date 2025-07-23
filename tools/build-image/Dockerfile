@@ -15,22 +15,22 @@ ARG GO_RUNTIME=mustoverride
 #
 
 # Dependency: docker (for building images)
-FROM alpine:3.17 as docker
+FROM --platform=$BUILDPLATFORM quay.io/rkamath/alpine:3.17 as docker
 RUN apk add --no-cache docker-cli docker-cli-buildx
 
 # Dependency: helm
-FROM alpine:3.17 as helm
+FROM --platform=$BUILDPLATFORM quay.io/rkamath/alpine:3.17 as helm
 RUN apk add --no-cache helm
 
 # Dependency: nsis (for building Windows installers)
-FROM alpine:3.17 as nsis
+FROM --platform=$BUILDPLATFORM quay.io/rkamath/alpine:3.17 as nsis
 RUN wget -nv https://nsis.sourceforge.io/mediawiki/images/4/4a/AccessControl.zip \
  && unzip AccessControl.zip -d /usr/share/nsis/ \
  && mkdir -p /usr/share/nsis/Plugins/x86-unicode \
  && cp /usr/share/nsis/Plugins/i386-unicode/AccessControl.dll /usr/share/nsis/Plugins/x86-unicode/
 
 # Dependency: Go and Go dependencies
-FROM ${GO_RUNTIME} as golang
+FROM --platform=$BUILDPLATFORM quay.io/projectquay/golang:1.24 as golang
 
 ENV CONTROLLER_GEN_VERSION v0.9.2
 
@@ -52,7 +52,7 @@ RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_V
 
 # rfratto/viceroy contains C cross compilers can be used for our Cgo
 # dependencies.
-FROM rfratto/viceroy:v0.4.0
+FROM --platform=$BUILDPLATFORM quay.io/rkamath/viceroy:v0.4.0
 
 # Install NodeJS LTS. This is needed because the most recent version of NodeJS
 # from official Debian packages is v12, and we need version v18.

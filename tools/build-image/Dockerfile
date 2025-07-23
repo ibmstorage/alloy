@@ -30,7 +30,7 @@ RUN wget -nv https://nsis.sourceforge.io/mediawiki/images/4/4a/AccessControl.zip
  && cp /usr/share/nsis/Plugins/i386-unicode/AccessControl.dll /usr/share/nsis/Plugins/x86-unicode/
 
 # Dependency: Go and Go dependencies
-FROM ${GO_RUNTIME} as golang
+FROM quay.io/projectquay/golang:1.24 as golang
 
 ENV CONTROLLER_GEN_VERSION v0.9.2
 
@@ -52,7 +52,7 @@ RUN go install sigs.k8s.io/controller-tools/cmd/controller-gen@$CONTROLLER_GEN_V
 
 # rfratto/viceroy contains C cross compilers can be used for our Cgo
 # dependencies.
-FROM rfratto/viceroy:v0.4.0
+#FROM docker.io/rfratto/viceroy:latest
 
 # Install NodeJS LTS. This is needed because the most recent version of NodeJS
 # from official Debian packages is v12, and we need version v18.
@@ -62,11 +62,12 @@ FROM rfratto/viceroy:v0.4.0
 # platform.
 # Source: https://github.com/nodesource/distributions#installation-instructions
 
-RUN  apt-get update && apt-get install -qy ca-certificates curl gnupg && mkdir -p /etc/apt/keyrings  \
- &&  curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
- &&  echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_18.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list \
- &&  apt-get update && apt-get install -qy nodejs \
- &&  rm -rf /var/lib/apt/lists/*
+RUN apt-get install -y git-core curl build-essential openssl libssl-dev \
+ && git clone https://github.com/nodejs/node.git \
+ && cd node \
+ && ./configure \
+ && make \
+ && sudo make install
 
 # Install Yarn.
 #
@@ -102,7 +103,7 @@ RUN git config --global --add safe.directory \*
 
 # Set CC to viceroycc to ensure that the cross compilers are used for all C
 # compilation.
-ENV CC viceroycc
+#ENV CC viceroycc
 
 ENV GOPATH /go
 ENV PATH /usr/local/go/bin:/go/bin:$PATH

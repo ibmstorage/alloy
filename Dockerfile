@@ -4,13 +4,11 @@
 # default when running `docker buildx build` or when DOCKER_BUILDKIT=1 is set
 # in environment variables.
 
-FROM --platform=$BUILDPLATFORM grafana/alloy-build-image:v0.1.20 AS ui-build
+FROM --platform="linux/arm64" docker.io/grafana/alloy-build-image:v0.1.20 AS ui-build
 ARG BUILDPLATFORM
 COPY ./internal/web/ui /ui
 WORKDIR /ui
-RUN --mount=type=cache,target=/ui/node_modules,sharing=locked \
-    yarn --network-timeout=1200000                            \
-    && yarn run build
+RUN yarn --network-timeout=120000000 && yarn run build
 
 FROM --platform=$BUILDPLATFORM grafana/alloy-build-image:v0.1.20 AS build
 
